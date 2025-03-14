@@ -1,11 +1,15 @@
-#!name=TextNow广告屏蔽增强版
+#!name=TextNow广告屏蔽增强版 (蜂窝网络兼容模式)
 #!desc=屏蔽TextNow应用中的广告并尝试移除广告占位，支持WiFi和蜂窝网络
 
 [General]
-# 确保蜂窝网络下DNS正常工作
+# 蜂窝网络兼容性设置
 compatibility-mode = 3
-# 使用系统DNS
-dns-server = system
+# 明确指定DNS服务器
+dns-server = 8.8.8.8, 8.8.4.4, 1.1.1.1, 1.0.0.1, system
+# 禁用所有MITM功能
+skip-proxy = *
+# 启用DNS over HTTPS
+doh-server = https://dns.google/dns-query, https://cloudflare-dns.com/dns-query
 
 [Rule]
 # 广告域名规则 - 仅当访问TextNow应用时
@@ -138,3 +142,5 @@ hostname = %APPEND% api.textnow.me, textnow-textnow.adsbynimbus.com
 # 禁用全局MITM，只对特定域名进行MITM
 skip-server-cert-verify = true
 tcp-connection = true
+# 完全禁用MITM功能
+disable-mitm = true
