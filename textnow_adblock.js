@@ -6,6 +6,8 @@
 // 检查响应内容类型
 const contentType = $response.headers['Content-Type'] || '';
 const url = $request.url || '';
+const method = $request.method;
+let body = $response.body;
 
 // 检查是否为TextNow相关请求
 function isTextNowRequest(url) {
@@ -14,119 +16,130 @@ function isTextNowRequest(url) {
          $request.headers['Host']?.includes('textnow');
 }
 
-// 只处理TextNow相关请求
-if (isTextNowRequest(url)) {
-  // TextNow API响应处理
-  if (url.includes('api.textnow.me')) {
-    try {
-      let obj = JSON.parse($response.body);
-      
-      // 处理用户信息和配置
-      if (url.includes('/users/')) {
-        // 修改用户订阅状态，尝试移除广告占位
-        if (obj.user) {
-          // 设置高级用户标记以移除广告区域
-          obj.user.premium = true;
-          obj.user.premium_state = "PREMIUM";
-          obj.user.ad_free = true;
-          obj.user.ads_disabled = true;
-          
-          // 移除任何广告配置
-          if (obj.user.ad_config) {
-            delete obj.user.ad_config;
-          }
+// 处理API响应
+function handleApiResponse() {
+  if (!body) return;
+  
+  try {
+    let obj = JSON.parse(body);
+    
+    // 处理用户信息响应
+    if (url.indexOf('/api2.0/users/') > -1) {
+      // 设置高级会员特性
+      if (obj.result) {
+        if (obj.result.premium_state !== undefined) {
+          obj.result.premium_state = true;
         }
         
         // 移除广告配置
-        if (obj.ad_config) {
-          delete obj.ad_config;
+        if (obj.result.ad_config) {
+          obj.result.ad_config = {};
         }
         
-        // 禁用所有广告相关设置
-        obj.ads_enabled = false;
-        obj.show_ads = false;
-        obj.ad_type = "none";
-        obj.banner_ad_type = "none";
-        obj.interstitial_ad_type = "none";
+        // 移除广告显示设置
+        if (obj.result.show_ads !== undefined) {
+          obj.result.show_ads = false;
+        }
         
-        // 修改任何广告标识或横幅
-        obj.has_advertising_banner = false;
-        obj.has_advertising = false;
-      }
-      
-      // 处理premium_state端点响应
-      if (url.includes('/premium_state')) {
-        // 将用户状态修改为高级版
-        obj.premium = true;
-        obj.premium_state = "PREMIUM";
-        obj.ad_free = true;
-        obj.ads_disabled = true;
-      }
-      
-      // 处理messages端点响应
-      if (url.includes('/messages')) {
-        // 过滤掉所有广告消息
-        if (obj.messages && Array.isArray(obj.messages)) {
-          obj.messages = obj.messages.filter(message => {
-            return !message.ad_type && 
-                   !message.is_ad && 
-                   !message.sponsored &&
-                   !(message.metadata && message.metadata.ad_data);
-          });
+        // 设置广告频率为0
+        if (obj.result.ad_frequency !== undefined) {
+          obj.result.ad_frequency = 0;
         }
       }
-      
-      // 处理wallet响应
-      if (url.includes('/wallet')) {
-        // 此处可以修改钱包余额等，但不推荐
-        // 我们只移除广告相关内容
-        if (obj.has_advertising) {
-          obj.has_advertising = false;
+    }
+    
+    // 处理钱包/订阅状态响应
+    if (url.indexOf('/wallet') > -1 || url.indexOf('/subscription_state') > -1 || url.indexOf('/premium_state') > -1) {
+      // 修改为高级会员数据
+      if (obj.result) {
+        obj.result.premium = true;
+        obj.result.premium_calling = true;
+        obj.result.allow_concurrent_calls = true;
+        obj.result.show_ads = false;
+        
+        // 移除任何免费试用限制
+        if (obj.result.trial_end_time) {
+          const farFuture = new Date();
+          farFuture.setFullYear(farFuture.getFullYear() + 10);
+          obj.result.trial_end_time = farFuture.getTime();
         }
       }
-      
-      // 处理订阅状态响应
-      if (url.includes('/subscription_state')) {
-        // 修改为禁用广告的状态
-        obj.show_ads = false;
-        obj.ad_free = true;
+    }
+    
+    // 处理消息响应
+    if (url.indexOf('/messages') > -1) {
+      // 移除消息中的广告
+      if (obj.result && Array.isArray(obj.result.messages)) {
+        obj.result.messages = obj.result.messages.filter(msg => {
+          // 过滤掉广告消息
+          return !msg.ad_content && !msg.ad_reference && msg.message_type !== 'ad';
+        });
       }
-      
-      $done({body: JSON.stringify(obj)});
-    } catch (e) {
-      // 保持原始响应不变
-      $done({});
     }
-  } 
-  // 广告网络响应处理 - 仅处理TextNow相关请求
-  else if (
-    url.includes('doubleclick.net') ||
-    url.includes('applovin.com') ||
-    url.includes('inmobi.com') ||
-    url.includes('inner-active.mobi') ||
-    url.includes('amazon-adsystem.com') ||
-    url.includes('adsbynimbus.com') ||
-    url.includes('smadex.com') ||
-    url.includes('adjust.com') ||
-    url.includes('braze.com') ||
-    url.includes('smaato.net') ||
-    url.includes('emb-api.com')
-  ) {
-    // 广告网络请求，返回空内容
-    if (contentType.includes('json')) {
-      $done({body: '{}'});
-    } else if (contentType.includes('xml')) {
-      $done({body: '<?xml version="1.0" encoding="UTF-8"?><VAST version="3.0"></VAST>'});
-    } else if (contentType.includes('html')) {
-      $done({body: '<!DOCTYPE html><html><head></head><body></body></html>'});
-    } else {
-      $done({body: ''});
-    }
-  } else {
-    // 不处理的请求保持原样
-    $done({});
+    
+    // 更新响应体
+    body = JSON.stringify(obj);
+  } catch (e) {
+    console.log('TextNow广告屏蔽 - JSON解析错误: ' + e.message);
   }
-} else {
-  // 非TextNow相关请求，保持原样
-  $done({});
 }
+
+// 处理广告网络响应
+function handleAdResponse() {
+  // 返回空白广告
+  const emptyResponse = {
+    "ads": [],
+    "settings": {
+      "ad_frequency": 0,
+      "ad_probability": 0
+    }
+  };
+  
+  // 特定广告平台的空响应
+  if (url.indexOf('doubleclick') > -1 || url.indexOf('googleads') > -1) {
+    body = JSON.stringify(emptyResponse);
+  } else if (url.indexOf('applovin') > -1) {
+    body = '{"ad":""}';
+  } else if (url.indexOf('adsbynimbus') > -1) {
+    body = '{"ads":[]}';
+  } else if (url.indexOf('adjust.com') > -1 || url.indexOf('analytics') > -1) {
+    body = '{"success":true}';
+  } else if (url.indexOf('amazon-adsystem') > -1) {
+    body = '{}';
+  } else if (url.indexOf('emb-api') > -1) {
+    body = '{"data":{}}';
+  } else if (url.indexOf('firehose') > -1) {
+    body = '';
+  } else {
+    // 通用空白响应
+    body = '{}';
+  }
+}
+
+// 主处理流程
+(() => {
+  if (!body) {
+    $done({});
+    return;
+  }
+  
+  // 判断请求类型
+  if (url.indexOf('api.textnow.me') > -1) {
+    handleApiResponse();
+  } else if (url.indexOf('doubleclick') > -1 || 
+           url.indexOf('applovin') > -1 || 
+           url.indexOf('inmobi') > -1 || 
+           url.indexOf('amazon-adsystem') > -1 || 
+           url.indexOf('adsbynimbus') > -1 || 
+           url.indexOf('smadex') > -1 ||
+           url.indexOf('adjust.com') > -1 || 
+           url.indexOf('braze') > -1 || 
+           url.indexOf('smaato') > -1 || 
+           url.indexOf('emb-api') > -1 ||
+           url.indexOf('csi.gstatic') > -1 ||
+           url.indexOf('firehose.us-west-2.amazonaws') > -1) {
+    handleAdResponse();
+  }
+  
+  $done({body});
+})();

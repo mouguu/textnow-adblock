@@ -3,6 +3,7 @@
  * 用于在请求阶段修改参数，使服务器认为用户有权限移除广告
  */
 
+const userAgent = $request.headers['User-Agent'];
 const url = $request.url;
 
 // 检查是否为TextNow相关请求
@@ -12,32 +13,34 @@ function isTextNowRequest(url) {
          $request.headers['Host']?.includes('textnow');
 }
 
-// 只处理TextNow相关请求
-if (isTextNowRequest(url) && url.includes('api.textnow.me')) {
+function modifyHeaders() {
   let headers = $request.headers;
   
-  // 添加或修改特定的请求头，可能有助于模拟高级用户状态
-  headers["X-Premium-User"] = "true";
-  headers["X-Ad-Free"] = "true";
+  // 添加premium用户标识
+  headers['X-TN-Premium'] = 'true';
+  headers['X-TN-Feature-Premium'] = 'enabled';
   
-  // 修改部分请求中的参数，比如URL查询参数
-  if (url.includes('?')) {
-    let modifiedUrl = url;
-    
-    // 确保请求包含高级用户参数
-    if (!url.includes('premium=true')) {
-      modifiedUrl += '&premium=true';
-    }
-    
-    if (!url.includes('ad_free=true')) {
-      modifiedUrl += '&ad_free=true';
-    }
-    
-    $done({url: modifiedUrl, headers: headers});
-  } else {
-    $done({headers: headers});
+  // 修改特定header以绕过广告检测
+  if (headers['X-Client-Type']) {
+    headers['X-Client-Type'] = 'TN_IOS_PREMIUM';
   }
-} else {
-  // 非TextNow相关请求，保持原样
-  $done({});
+  
+  if (url.indexOf('/ads') > -1 || url.indexOf('/ad_config') > -1 || url.indexOf('/ad_attribution') > -1) {
+    // 如果是广告相关请求，直接拦截
+    $done({status: 200, headers: {}, body: '{}'});
+    return;
+  }
+  
+  // 返回修改后的请求
+  $done({headers});
 }
+
+// 主处理逻辑
+(() => {
+  // 仅处理TextNow应用请求
+  if (userAgent && userAgent.indexOf('TextNow') > -1) {
+    modifyHeaders();
+  } else {
+    $done({});
+  }
+})();

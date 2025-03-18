@@ -24,6 +24,10 @@ AND,((PROCESS-NAME,TextNow),(DOMAIN-SUFFIX,adjust.com)),REJECT-TINYGIF
 AND,((PROCESS-NAME,TextNow),(DOMAIN-SUFFIX,braze.com)),REJECT-TINYGIF
 AND,((PROCESS-NAME,TextNow),(DOMAIN-SUFFIX,smaato.net)),REJECT-TINYGIF
 AND,((PROCESS-NAME,TextNow),(DOMAIN-SUFFIX,emb-api.com)),REJECT-TINYGIF
+# 从日志中发现的新广告域名
+AND,((PROCESS-NAME,TextNow),(DOMAIN-SUFFIX,csi.gstatic.com)),REJECT-TINYGIF
+AND,((PROCESS-NAME,TextNow),(DOMAIN,firehose.us-west-2.amazonaws.com)),REJECT-TINYGIF
+
 # 添加蜂窝网络下可能出现的额外广告域名 - 仅针对TextNow应用
 AND,((PROCESS-NAME,TextNow),(DOMAIN-SUFFIX,mopub.com)),REJECT-TINYGIF
 AND,((PROCESS-NAME,TextNow),(DOMAIN-SUFFIX,branch.io)),REJECT-TINYGIF
@@ -48,97 +52,98 @@ AND,((PROCESS-NAME,TextNow),(DOMAIN-SUFFIX,adform.net)),REJECT-TINYGIF
 
 [URL Rewrite]
 # Google广告重写 - 仅针对TextNow应用
-^https?:\/\/googleads\.g\.doubleclick\.net\/.*textnow.* - reject
-^https?:\/\/pubads\.g\.doubleclick\.net\/.*textnow.* - reject
-^https?:\/\/pagead2\.googlesyndication\.com\/.*textnow.* - reject
-^https?:\/\/www\.googleadservices\.com\/.*textnow.* - reject
+^https?:\/\/googleads\.g\.doubleclick\.net\/.* - reject
+^https?:\/\/pubads\.g\.doubleclick\.net\/.* - reject
+^https?:\/\/pagead2\.googlesyndication\.com\/.* - reject
+^https?:\/\/www\.googleadservices\.com\/.* - reject
+^https?:\/\/csi\.gstatic\.com\/csi.* - reject
 
 # Applovin广告重写 - 仅针对TextNow应用
-^https?:\/\/a4\.applovin\.com\/.*textnow.* - reject
-^https?:\/\/d\.applovin\.com\/.*textnow.* - reject
-^https?:\/\/rt\.applovin\.com\/.*textnow.* - reject
-^https?:\/\/ms\.applovin\.com\/.*textnow.* - reject
-^https?:\/\/assets\.applovin\.com\/.*textnow.* - reject
+^https?:\/\/a4\.applovin\.com\/.* - reject
+^https?:\/\/d\.applovin\.com\/.* - reject
+^https?:\/\/rt\.applovin\.com\/.* - reject
+^https?:\/\/ms\.applovin\.com\/.* - reject
+^https?:\/\/assets\.applovin\.com\/.* - reject
 
 # InMobi广告重写 - 仅针对TextNow应用
-^https?:\/\/ads\.inmobi\.com\/.*textnow.* - reject
-^https?:\/\/et-eus\.w\.inmobi\.com\/.*textnow.* - reject
-^https?:\/\/api\.w\.inmobi\.com\/.*textnow.* - reject
-^https?:\/\/sdkm\.w\.inmobi\.com\/.*textnow.* - reject
+^https?:\/\/ads\.inmobi\.com\/.* - reject
+^https?:\/\/et-eus\.w\.inmobi\.com\/.* - reject
+^https?:\/\/api\.w\.inmobi\.com\/.* - reject
+^https?:\/\/sdkm\.w\.inmobi\.com\/.* - reject
 
 # Inner-Active广告重写 - 仅针对TextNow应用
-^https?:\/\/wv\.inner-active\.mobi\/.*textnow.* - reject
-^https?:\/\/cdn2\.inner-active\.mobi\/.*textnow.* - reject
-^https?:\/\/vast\.inner-active\.mobi\/.*textnow.* - reject
+^https?:\/\/wv\.inner-active\.mobi\/.* - reject
+^https?:\/\/cdn2\.inner-active\.mobi\/.* - reject
+^https?:\/\/vast\.inner-active\.mobi\/.* - reject
 
 # Amazon广告系统重写 - 仅针对TextNow应用
-^https?:\/\/aax\.amazon-adsystem\.com\/.*textnow.* - reject
-^https?:\/\/aax-us-east\.amazon-adsystem\.com\/.*textnow.* - reject
-^https?:\/\/c\.amazon-adsystem\.com\/.*textnow.* - reject
-^https?:\/\/s\.amazon-adsystem\.com\/.*textnow.* - reject
+^https?:\/\/aax\.amazon-adsystem\.com\/.* - reject
+^https?:\/\/aax-us-east\.amazon-adsystem\.com\/.* - reject
+^https?:\/\/c\.amazon-adsystem\.com\/.* - reject
+^https?:\/\/s\.amazon-adsystem\.com\/.* - reject
 
 # Nimbus广告重写 - 已经是TextNow特定的
 ^https?:\/\/textnow-textnow\.adsbynimbus\.com\/.* - reject
 
 # Smadex广告重写 - 仅针对TextNow应用
-^https?:\/\/creatives\.smadex\.com\/.*textnow.* - reject
-^https?:\/\/tracker\.smadex\.com\/.*textnow.* - reject
+^https?:\/\/creatives\.smadex\.com\/.* - reject
+^https?:\/\/tracker\.smadex\.com\/.* - reject
 
 # Adjust分析追踪重写 - 仅针对TextNow应用
-^https?:\/\/analytics\.adjust\.com\/.*textnow.* - reject
-^https?:\/\/app\.adjust\.com\/.*textnow.* - reject
+^https?:\/\/analytics\.adjust\.com\/.* - reject
+^https?:\/\/app\.adjust\.com\/.* - reject
 
 # Braze分析追踪重写 - 仅针对TextNow应用
-^https?:\/\/sdk-tracking\.iad-07\.braze\.com\/.*textnow.* - reject
-^https?:\/\/rest\.iad-07\.braze\.com\/.*textnow.* - reject
+^https?:\/\/sdk-tracking\.iad-07\.braze\.com\/.* - reject
+^https?:\/\/rest\.iad-07\.braze\.com\/.* - reject
 
 # Smaato广告重写 - 仅针对TextNow应用
-^https?:\/\/sdk-hb-cfg\.smaato\.net\/.*textnow.* - reject
-^https?:\/\/soma\.smaato\.net\/.*textnow.* - reject
+^https?:\/\/sdk-hb-cfg\.smaato\.net\/.* - reject
+^https?:\/\/soma\.smaato\.net\/.* - reject
 
 # 其他分析和追踪服务重写 - 仅针对TextNow应用
-^https?:\/\/data\.emb-api\.com\/.*textnow.* - reject
-^https?:\/\/config\.emb-api\.com\/.*textnow.* - reject
+^https?:\/\/data\.emb-api\.com\/.* - reject
+^https?:\/\/config\.emb-api\.com\/.* - reject
 
 # AWS Firehose数据流重写 - 仅针对TextNow应用
-^https?:\/\/firehose\.us-west-2\.amazonaws\.com\/.*textnow.* - reject
+^https?:\/\/firehose\.us-west-2\.amazonaws\.com\/.* - reject
 
 # 蜂窝网络下可能出现的额外广告重写
-^https?:\/\/ads\.mopub\.com\/.*textnow.* - reject
-^https?:\/\/api\.branch\.io\/.*textnow.* - reject
-^https?:\/\/config\.unityads\.unity3d\.com\/.*textnow.* - reject
-^https?:\/\/ads\.api\.vungle\.com\/.*textnow.* - reject
-^https?:\/\/ws\.tapjoyads\.com\/.*textnow.* - reject
-^https?:\/\/live\.chartboost\.com\/.*textnow.* - reject
-^https?:\/\/api\.adcolony\.com\/.*textnow.* - reject
-^https?:\/\/t\.appsflyer\.com\/.*textnow.* - reject
-^https?:\/\/analytics\.amplitude\.com\/.*textnow.* - reject
-^https?:\/\/data\.flurry\.com\/.*textnow.* - reject
-^https?:\/\/settings\.crashlytics\.com\/.*textnow.* - reject
-^https?:\/\/app-measurement\.com\/.*textnow.* - reject
+^https?:\/\/ads\.mopub\.com\/.* - reject
+^https?:\/\/api\.branch\.io\/.* - reject
+^https?:\/\/config\.unityads\.unity3d\.com\/.* - reject
+^https?:\/\/ads\.api\.vungle\.com\/.* - reject
+^https?:\/\/ws\.tapjoyads\.com\/.* - reject
+^https?:\/\/live\.chartboost\.com\/.* - reject
+^https?:\/\/api\.adcolony\.com\/.* - reject
+^https?:\/\/t\.appsflyer\.com\/.* - reject
+^https?:\/\/analytics\.amplitude\.com\/.* - reject
+^https?:\/\/data\.flurry\.com\/.* - reject
+^https?:\/\/settings\.crashlytics\.com\/.* - reject
+^https?:\/\/app-measurement\.com\/.* - reject
 
 [Script]
-# 请求阶段 - 修改请求参数模拟高级用户
-textnow_request = type=http-request,pattern=^https:\/\/api\.textnow\.me\/api2\.0\/users\/.*$,requires-body=0,script-path=https://raw.githubusercontent.com/mouguu/textnow-adblock--based_on_surge/refs/heads/main/textnow_config_script.js
+# 内联脚本定义 - 请求配置脚本
+textnow_request = type=http-request,pattern=^https:\/\/api\.textnow\.me\/api2\.0\/users\/.*$,requires-body=0,script-path=https://raw.githubusercontent.com/mouguu/textnow-adblock/master/textnow_config_script.js
 
 # TextNow API响应处理 - 增强版
-textnow_response = type=http-response,pattern=^https:\/\/api\.textnow\.me\/api2\.0\/users\/.*$,requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/mouguu/textnow-adblock--based_on_surge/refs/heads/main/textnow_adblock.js
+textnow_response = type=http-response,pattern=^https:\/\/api\.textnow\.me\/api2\.0\/users\/.*$,requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/mouguu/textnow-adblock/master/textnow_adblock.js
 
 # TextNow 消息响应处理
-textnow_messages = type=http-response,pattern=^https:\/\/api\.textnow\.me\/api2\.0\/users\/.*\/messages.*$,requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/mouguu/textnow-adblock--based_on_surge/refs/heads/main/textnow_adblock.js
+textnow_messages = type=http-response,pattern=^https:\/\/api\.textnow\.me\/api2\.0\/users\/.*\/messages.*$,requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/mouguu/textnow-adblock/master/textnow_adblock.js
 
 # TextNow 广告配置拦截
-textnow_premium = type=http-response,pattern=^https:\/\/api\.textnow\.me\/.*\/(premium_state|subscription_state|wallet).*$,requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/mouguu/textnow-adblock--based_on_surge/refs/heads/main/textnow_adblock.js
+textnow_premium = type=http-response,pattern=^https:\/\/api\.textnow\.me\/.*\/(premium_state|subscription_state|wallet).*$,requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/mouguu/textnow-adblock/master/textnow_adblock.js
 
 # 广告网络响应拦截 - 仅针对TextNow相关请求 (增强版)
-ad_response = type=http-response,pattern=^https?:\/\/(googleads|pubads)\.g\.doubleclick\.net.*textnow.*$|^https?:\/\/.*\.applovin\.com.*textnow.*$|^https?:\/\/.*\.inner-active\.mobi.*textnow.*$|^https?:\/\/.*\.amazon-adsystem\.com.*textnow.*$|^https?:\/\/.*\.adsbynimbus\.com.*textnow.*$|^https?:\/\/.*\.inmobi\.com.*textnow.*$|^https?:\/\/.*\.smadex\.com.*textnow.*$|^https?:\/\/.*\.adjust\.com.*textnow.*$|^https?:\/\/.*\.braze\.com.*textnow.*$|^https?:\/\/.*\.smaato\.net.*textnow.*$|^https?:\/\/.*\.emb-api\.com.*textnow.*$|^https?:\/\/.*\.mopub\.com.*textnow.*$|^https?:\/\/.*\.branch\.io.*textnow.*$|^https?:\/\/.*\.unity3d\.com.*textnow.*$|^https?:\/\/.*\.vungle\.com.*textnow.*$|^https?:\/\/.*\.tapjoy\.com.*textnow.*$|^https?:\/\/.*\.chartboost\.com.*textnow.*$|^https?:\/\/.*\.adcolony\.com.*textnow.*$|^https?:\/\/.*\.appsflyer\.com.*textnow.*$|^https?:\/\/.*\.amplitude\.com.*textnow.*$|^https?:\/\/.*\.flurry\.com.*textnow.*$|^https?:\/\/.*\.crashlytics\.com.*textnow.*$|^https?:\/\/.*\.app-measurement\.com.*textnow.*$,requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/mouguu/textnow-adblock--based_on_surge/refs/heads/main/textnow_adblock.js
+ad_response = type=http-response,pattern=^https?:\/\/(googleads|pubads)\.g\.doubleclick\.net.*$|^https?:\/\/.*\.applovin\.com.*$|^https?:\/\/.*\.inner-active\.mobi.*$|^https?:\/\/.*\.amazon-adsystem\.com.*$|^https?:\/\/.*\.adsbynimbus\.com.*$|^https?:\/\/.*\.inmobi\.com.*$|^https?:\/\/.*\.smadex\.com.*$|^https?:\/\/.*\.adjust\.com.*$|^https?:\/\/.*\.braze\.com.*$|^https?:\/\/.*\.smaato\.net.*$|^https?:\/\/.*\.emb-api\.com.*$|^https?:\/\/.*\.mopub\.com.*$|^https?:\/\/.*\.branch\.io.*$|^https?:\/\/.*\.unity3d\.com.*$|^https?:\/\/.*\.vungle\.com.*$|^https?:\/\/.*\.tapjoy\.com.*$|^https?:\/\/.*\.chartboost\.com.*$|^https?:\/\/.*\.adcolony\.com.*$|^https?:\/\/.*\.appsflyer\.com.*$|^https?:\/\/.*\.amplitude\.com.*$|^https?:\/\/.*\.flurry\.com.*$|^https?:\/\/.*\.crashlytics\.com.*$|^https?:\/\/.*\.app-measurement\.com.*$|^https?:\/\/.*\.csi\.gstatic\.com.*$|^https?:\/\/firehose\.us-west-2\.amazonaws\.com.*$,requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/mouguu/textnow-adblock/master/textnow_adblock.js
 
 # 蜂窝网络特定脚本 - 处理蜂窝网络下的特殊广告请求
-cellular_ad_block = type=http-request,pattern=^https:\/\/api\.textnow\.me\/.*\/(ads|ad_config|ad_attribution).*$,requires-body=0,script-path=https://raw.githubusercontent.com/mouguu/textnow-adblock--based_on_surge/refs/heads/main/textnow_config_script.js
+cellular_ad_block = type=http-request,pattern=^https:\/\/api\.textnow\.me\/.*\/(ads|ad_config|ad_attribution).*$,requires-body=0,script-path=https://raw.githubusercontent.com/mouguu/textnow-adblock/master/textnow_config_script.js
 
 [MITM]
 # 启用MITM功能，但仅针对TextNow相关域名
-hostname = %APPEND% api.textnow.me, textnow-textnow.adsbynimbus.com, *.doubleclick.net, *.googlesyndication.com, *.googleadservices.com, *.applovin.com, *.inmobi.com, *.inner-active.mobi, *.amazon-adsystem.com, *.smadex.com, *.adjust.com, *.braze.com, *.smaato.net, *.emb-api.com
+hostname = %APPEND% api.textnow.me, textnow-textnow.adsbynimbus.com, *.doubleclick.net, *.googlesyndication.com, *.googleadservices.com, *.applovin.com, *.inmobi.com, *.inner-active.mobi, *.amazon-adsystem.com, *.smadex.com, *.adjust.com, *.braze.com, *.smaato.net, *.emb-api.com, csi.gstatic.com, firehose.us-west-2.amazonaws.com, data.emb-api.com
 # 启用证书验证跳过和TCP连接
 skip-server-cert-verify = true
 tcp-connection = true
