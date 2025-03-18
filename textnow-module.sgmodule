@@ -125,8 +125,17 @@ AND,((PROCESS-NAME,TextNow),(DOMAIN-SUFFIX,adform.net)),REJECT-TINYGIF
 ^https?:\/\/settings\.crashlytics\.com\/.* - reject
 ^https?:\/\/app-measurement\.com\/.* - reject
 
+# 静态资源拦截重写
+^https?:\/\/static\.textnow\.com\/.*\/ad(s)?\/.* - reject
+^https?:\/\/static\.textnow\.com\/.*\/(banner|promo|upsell)\/.* - reject
+^https?:\/\/static\.textnow\.com\/.*\/(ads?|premium|upsell).*\.(png|jpg|gif) - reject
+
+# 界面元素重写
+^https?:\/\/api\.textnow\.me\/.*\/(html|css) - script-response-body textnow_adblock.js
+^https?:\/\/static\.textnow\.com\/.*\/(css|js|html) - script-response-body textnow_adblock.js
+
 # CSS注入拦截 - 移除广告占位区域
-^https?:\/\/api\.textnow\.me\/api2\.0\/users\/.*\/css - response-body .ad-container,.ad-banner,.premium-banner { response-body .ad-container,.ad-banner,.premium-banner{display:none!important;height:0!important;padding:0!important;margin:0!important;overflow:hidden!important;}
+^https?:\/\/api\.textnow\.me\/api2\.0\/users\/.*\/css - response-body .ad-container,.ad-banner,.premium-banner,.banner-container,.ditch-the-ads { response-body .ad-container,.ad-banner,.premium-banner,.banner-container,.ditch-the-ads{display:none!important;height:0!important;max-height:0!important;min-height:0!important;padding:0!important;margin:0!important;border:none!important;overflow:hidden!important;visibility:hidden!important;opacity:0!important;}
 
 [Script]
 # 内联脚本定义 - 请求配置脚本
@@ -142,17 +151,23 @@ textnow_messages = type=http-response,pattern=^https:\/\/api\.textnow\.me\/api2\
 textnow_premium = type=http-response,pattern=^https:\/\/api\.textnow\.me\/.*\/(premium_state|subscription_state|wallet).*$,requires-body=1,max-size=0,script-path=textnow_adblock.js
 
 # TextNow UI配置拦截
-textnow_ui = type=http-response,pattern=^https:\/\/api\.textnow\.me\/.*\/(ui_config|app_config|styles|theme).*$,requires-body=1,max-size=0,script-path=textnow_adblock.js
+textnow_ui = type=http-response,pattern=^https:\/\/api\.textnow\.me\/.*\/(ui_config|app_config|styles|theme|css|initialize).*$,requires-body=1,max-size=0,script-path=textnow_adblock.js
+
+# TextNow 资源文件拦截
+textnow_assets = type=http-response,pattern=^https:\/\/api\.textnow\.me\/.*\/(assets|resources).*$,requires-body=1,max-size=0,script-path=textnow_adblock.js
 
 # 广告网络响应拦截 (增强版)
 ad_response = type=http-response,pattern=^https?:\/\/(googleads|pubads)\.g\.doubleclick\.net.*$|^https?:\/\/.*\.applovin\.com.*$|^https?:\/\/.*\.inner-active\.mobi.*$|^https?:\/\/.*\.amazon-adsystem\.com.*$|^https?:\/\/.*\.adsbynimbus\.com.*$|^https?:\/\/.*\.inmobi\.com.*$|^https?:\/\/.*\.smadex\.com.*$|^https?:\/\/.*\.adjust\.(com|io).*$|^https?:\/\/.*\.braze\.com.*$|^https?:\/\/.*\.smaato\.net.*$|^https?:\/\/.*\.emb-api\.com.*$|^https?:\/\/.*\.mopub\.com.*$|^https?:\/\/.*\.branch\.io.*$|^https?:\/\/.*\.unity3d\.com.*$|^https?:\/\/.*\.vungle\.com.*$|^https?:\/\/.*\.tapjoy\.com.*$|^https?:\/\/.*\.chartboost\.com.*$|^https?:\/\/.*\.adcolony\.com.*$|^https?:\/\/.*\.appsflyer\.com.*$|^https?:\/\/.*\.amplitude\.com.*$|^https?:\/\/.*\.flurry\.com.*$|^https?:\/\/.*\.crashlytics\.com.*$|^https?:\/\/.*\.app-measurement\.com.*$|^https?:\/\/.*\.csi\.gstatic\.com.*$|^https?:\/\/firehose\.us-west-2\.amazonaws\.com.*$,requires-body=1,max-size=0,script-path=textnow_adblock.js
+
+# 静态资源处理
+static_resources = type=http-response,pattern=^https?:\/\/static\.textnow\.com\/.*\/(banner|ad|promo|upsell|premium).*$,requires-body=1,max-size=0,script-path=textnow_adblock.js
 
 # 蜂窝网络特定脚本 - 处理蜂窝网络下的特殊广告请求
 cellular_ad_block = type=http-request,pattern=^https:\/\/api\.textnow\.me\/.*\/(ads|ad_config|ad_attribution).*$,requires-body=0,script-path=textnow_config_script.js
 
 [MITM]
 # 启用MITM功能，但仅针对TextNow相关域名
-hostname = %APPEND% api.textnow.me, textnow-textnow.adsbynimbus.com, *.doubleclick.net, *.googlesyndication.com, *.googleadservices.com, *.applovin.com, *.inmobi.com, *.inner-active.mobi, *.amazon-adsystem.com, *.smadex.com, *.adjust.com, *.adjust.io, *.braze.com, *.smaato.net, *.emb-api.com, csi.gstatic.com, firehose.us-west-2.amazonaws.com, data.emb-api.com
+hostname = %APPEND% api.textnow.me, static.textnow.com, textnow-textnow.adsbynimbus.com, *.doubleclick.net, *.googlesyndication.com, *.googleadservices.com, *.applovin.com, *.inmobi.com, *.inner-active.mobi, *.amazon-adsystem.com, *.smadex.com, *.adjust.com, *.adjust.io, *.braze.com, *.smaato.net, *.emb-api.com, csi.gstatic.com, firehose.us-west-2.amazonaws.com, data.emb-api.com
 # 启用证书验证跳过和TCP连接
 skip-server-cert-verify = true
 tcp-connection = true
