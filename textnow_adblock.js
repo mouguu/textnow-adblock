@@ -27,35 +27,65 @@ function handleApiResponse() {
     if (url.indexOf('/api2.0/users/') > -1) {
       // 设置高级会员特性
       if (obj.result) {
-        if (obj.result.premium_state !== undefined) {
-          obj.result.premium_state = true;
+        // 设置为高级会员状态
+        obj.result.premium = true;
+        obj.result.premium_state = true;
+        obj.result.premium_calling = true;
+        obj.result.premium_texting = true;
+        obj.result.premium_features = true;
+        
+        // 移除广告配置和标记
+        obj.result.ad_config = {};
+        obj.result.show_ads = false;
+        obj.result.ad_frequency = 0;
+        obj.result.ad_type = "none";
+        obj.result.has_ads = false;
+        obj.result.show_premium_features = true;
+        
+        // 移除广告占位配置
+        if (obj.result.ui_config) {
+          obj.result.ui_config.show_ads = false;
+          obj.result.ui_config.show_ad_banners = false;
+          obj.result.ui_config.show_premium_upsell = false;
+          obj.result.ui_config.show_premium_badge = true;
+          obj.result.ui_config.enable_premium_features = true;
         }
         
-        // 移除广告配置
-        if (obj.result.ad_config) {
-          obj.result.ad_config = {};
+        // 移除任何广告相关的UI元素
+        if (obj.result.ui_flags) {
+          obj.result.ui_flags.ads_enabled = false;
+          obj.result.ui_flags.show_ads = false;
+          obj.result.ui_flags.show_premium_upsell = false;
+          obj.result.ui_flags.premium_enabled = true;
         }
         
-        // 移除广告显示设置
-        if (obj.result.show_ads !== undefined) {
-          obj.result.show_ads = false;
-        }
-        
-        // 设置广告频率为0
-        if (obj.result.ad_frequency !== undefined) {
-          obj.result.ad_frequency = 0;
+        // 设置为已购买状态
+        if (obj.result.purchases) {
+          obj.result.purchases.premium = true;
+          obj.result.purchases.ad_free = true;
         }
       }
     }
     
     // 处理钱包/订阅状态响应
     if (url.indexOf('/wallet') > -1 || url.indexOf('/subscription_state') > -1 || url.indexOf('/premium_state') > -1) {
-      // 修改为高级会员数据
       if (obj.result) {
+        // 设置完整的高级会员状态
         obj.result.premium = true;
+        obj.result.premium_state = true;
         obj.result.premium_calling = true;
+        obj.result.premium_texting = true;
         obj.result.allow_concurrent_calls = true;
         obj.result.show_ads = false;
+        obj.result.ad_free = true;
+        obj.result.has_active_subscription = true;
+        
+        // 设置订阅信息
+        if (obj.result.subscription) {
+          obj.result.subscription.status = "active";
+          obj.result.subscription.type = "premium";
+          obj.result.subscription.features = ["premium", "ad_free", "premium_calling"];
+        }
         
         // 移除任何免费试用限制
         if (obj.result.trial_end_time) {
@@ -68,12 +98,36 @@ function handleApiResponse() {
     
     // 处理消息响应
     if (url.indexOf('/messages') > -1) {
-      // 移除消息中的广告
+      // 移除消息中的广告和广告占位
       if (obj.result && Array.isArray(obj.result.messages)) {
         obj.result.messages = obj.result.messages.filter(msg => {
-          // 过滤掉广告消息
-          return !msg.ad_content && !msg.ad_reference && msg.message_type !== 'ad';
+          return !msg.ad_content && 
+                 !msg.ad_reference && 
+                 !msg.sponsored && 
+                 msg.message_type !== 'ad' &&
+                 msg.message_type !== 'premium_upsell' &&
+                 !msg.is_promotional;
         });
+      }
+      
+      // 移除消息列表中的广告配置
+      if (obj.result && obj.result.conversation) {
+        obj.result.conversation.show_ads = false;
+        obj.result.conversation.ad_frequency = 0;
+        obj.result.conversation.premium_features_enabled = true;
+      }
+    }
+    
+    // 处理UI配置响应
+    if (url.indexOf('/ui_config') > -1 || url.indexOf('/config') > -1) {
+      if (obj.result) {
+        // 禁用所有广告相关的UI元素
+        obj.result.show_ads = false;
+        obj.result.show_ad_banners = false;
+        obj.result.show_premium_upsell = false;
+        obj.result.ads_enabled = false;
+        obj.result.premium_enabled = true;
+        obj.result.premium_features_enabled = true;
       }
     }
     
@@ -91,7 +145,9 @@ function handleAdResponse() {
     "ads": [],
     "settings": {
       "ad_frequency": 0,
-      "ad_probability": 0
+      "ad_probability": 0,
+      "show_ads": false,
+      "premium_enabled": true
     }
   };
   
@@ -99,15 +155,15 @@ function handleAdResponse() {
   if (url.indexOf('doubleclick') > -1 || url.indexOf('googleads') > -1) {
     body = JSON.stringify(emptyResponse);
   } else if (url.indexOf('applovin') > -1) {
-    body = '{"ad":""}';
+    body = '{"ad":"","settings":{"show_ads":false}}';
   } else if (url.indexOf('adsbynimbus') > -1) {
-    body = '{"ads":[]}';
+    body = '{"ads":[],"settings":{"enabled":false}}';
   } else if (url.indexOf('adjust.com') > -1 || url.indexOf('analytics') > -1) {
-    body = '{"success":true}';
+    body = '{"success":true,"premium":true}';
   } else if (url.indexOf('amazon-adsystem') > -1) {
     body = '{}';
   } else if (url.indexOf('emb-api') > -1) {
-    body = '{"data":{}}';
+    body = '{"data":{},"settings":{"ads_enabled":false}}';
   } else if (url.indexOf('firehose') > -1) {
     body = '';
   } else {
